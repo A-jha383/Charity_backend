@@ -1,0 +1,72 @@
+{% extends 'org.html.j2' %}
+
+{% block headscripts %}
+{{ super() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js" integrity="sha512-vBmx0N/uQOXznm/Nbkp7h0P1RfLSj0HQrFSzV8m7rOGyj30fYAOKHYvCNez+yM8IrfnW0TCodDEjRqf6fodf/Q==" crossorigin="anonymous"></script>
+{% endblock %}
+
+{% block bodyscripts %}
+{{ super() }}
+<script>
+    const FINANCES = {{ charity.financial_json()|tojson }};
+</script>
+<script src="{{ static('js/charts.js') }}"></script>
+{% endblock %}
+
+{% block organisation_details %}
+
+  {{ super() }}
+
+  {% include 'panels/charity-activities.html.j2' %}
+  {% include 'panels/charity-financials.html.j2' %}
+
+{% endblock %}
+
+
+{% block location %}
+{% if org.location or org.postalCode or charity.geographical_spread %}
+<article class="message is-info">
+<h4 class="ma0 pa0">Locations</h4>
+<p class="f6 gray">Depending on the data source, location may describe the headquarters of the organisation rather than the area it operates in.</p>
+<div id="locationmap" class="h5"></div>
+{% if charity.geographical_spread %}
+<div class="mv3">
+    <h5 class="ma0 pa0">Geographic spread</h5>
+    <p class="f6 ma0 pa0">
+    {{ charity.geographical_spread|titlecase }}
+    </p>
+</div>
+{% endif %}
+{% if org.postalCode %}
+<div class="mv3">
+    <h5 class="ma0 pa0">Postcode</h5>
+    <p class="f6 ma0 pa0">
+    {{ org.postalCode }}
+    </p>
+</div>
+{% endif %}
+<div class="mv3">
+    <h5 class="ma0 pa0">Locations</h5>
+    <ul class="mv0 list mh0 pa0 f6">
+    {% if org.location %}
+    {% for v in org.location %}
+    {% if v.geoCode and v.geoCode|regex_search("[ENWSK][0-9]{8}") %}
+    <li class="w-100 mb2">
+        <a class="link dark-blue underline-hover" href="https://findthatpostcode.uk/areas/{{ v.geoCode }}.html" target="_blank">{{ v.name|titlecase }}</a>
+        {% if v.geoCodeType %}({{ v.geoCodeType }}){% endif %}
+        {# {{ show_sources(v) }} #}
+    </li>
+    {% else %}
+    <li class="w-100 mb2">
+        {{ v.name|titlecase }} {% if v.geoCode %}(<code>{{ v.geoCode }}</code>){% endif %}
+        {% if v.geoCodeType %}({{ v.geoCodeType }}){% endif %}
+        {# {{ show_sources(v) }} #}
+    </li>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+    </ul>
+</div>
+</article>
+{% endif %}
+{% endblock %}
